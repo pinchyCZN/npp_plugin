@@ -135,6 +135,7 @@ void json_format()
 		}
 	}
 	SendMessage(curScintilla,SCI_SETTEXT,0,(LPARAM)tmp);
+	SendMessage(curScintilla,SCI_GOTOLINE,0,0);
 
 ERROR_EXIT:
 	free(tmp);
