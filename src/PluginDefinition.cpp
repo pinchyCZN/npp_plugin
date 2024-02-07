@@ -18,6 +18,9 @@
 #include "PluginDefinition.h"
 #include "menuCmdID.h"
 #include <stdlib.h>
+#include <string>
+#include <vector>
+#include <algorithm>
 
 //
 // The plugin data that Notepad++ needs
@@ -60,7 +63,9 @@ void commandMenuInit()
     //            bool check0nInit                // optional. Make this menu item be checked visually
     //            );
     setCommand(0, TEXT("json format"), json_format, NULL, false);
-    //setCommand(1, TEXT("Hello (with dialog)"), helloDlg, NULL, false);
+	setCommand(1,TEXT("sort lines ascending"),sort_ascend,NULL,false);
+	setCommand(2,TEXT("sort lines descending"),sort_descend,NULL,false);
+	//setCommand(1, TEXT("Hello (with dialog)"), helloDlg, NULL, false);
 }
 
 //
@@ -141,6 +146,88 @@ ERROR_EXIT:
 	free(tmp);
 	free(data);
 
+}
+
+static bool greater(const std::string &a,const std::string &b)
+{
+	return a > b;
+}
+
+static void sort_lines(int dir)
+{
+	int which = -1;
+	::SendMessage(nppData._nppHandle,NPPM_GETCURRENTSCINTILLA,0,(LPARAM)&which);
+	if(which == -1)
+		return;
+	HWND curScintilla = (which == 0)?nppData._scintillaMainHandle:nppData._scintillaSecondHandle;
+	int pos_start=0;
+	int pos_end=0;
+	pos_start=::SendMessage(curScintilla,SCI_GETSELECTIONSTART,0,0);
+	pos_end=::SendMessage(curScintilla,SCI_GETSELECTIONEND,0,0);
+	if(pos_start == pos_end){
+		return;
+	}
+	int line_start=0;
+	int line_end=0;
+	int line_count=0;
+	int i;
+	line_start=::SendMessage(curScintilla,SCI_LINEFROMPOSITION,pos_start,0);
+	line_end=::SendMessage(curScintilla,SCI_LINEFROMPOSITION,pos_end,0);
+	if(line_start == line_end){
+		return;
+	}
+	line_count=line_start < line_end?line_end - line_start:line_start - line_end;
+	line_count++;
+	line_start=line_start < line_end?line_start:line_end;
+	std::vector<std::string> list;
+	for(i=0; i < line_count; i++){
+		std::string tmp;
+		int len=::SendMessage(curScintilla,SCI_LINELENGTH,i+line_start,0);
+		tmp.reserve(len+1);
+		memset((void*)tmp.data(),0,len+1);
+		SendMessage(curScintilla,SCI_GETLINE,i + line_start,(LPARAM)tmp.data());
+		list.push_back(tmp.data());
+	}
+	if(dir >= 0){
+		std::sort(list.begin(),list.end());
+	}
+	else{
+		std::sort(list.begin(),list.end(),greater);
+	}
+#ifdef _DEBUG
+	for(i=0; i < list.size(); i++){
+		std::string &tmp=list[i];
+		const char *str=tmp.data();
+		char t[80]={0};
+		snprintf(t,sizeof(t),"line %i:",i);
+		OutputDebugStringA(t);
+		OutputDebugStringA(str);
+		if(tmp.empty() || ((!tmp.empty()) && (tmp.back() != '\n'))){
+			if(tmp.empty()){
+				OutputDebugStringA("[EMPTY]");
+			}
+			OutputDebugStringA("\n");
+		}
+	}
+	OutputDebugStringA("----\n");
+#endif
+	std::string final;
+	for(i=0; i < list.size(); i++){
+		const char *str=list[i].data();
+		final.append(str);
+	}
+	SendMessage(curScintilla,SCI_REPLACESEL,0,(LPARAM)final.data());
+	SendMessage(curScintilla,SCI_SETSEL,pos_start,pos_end);
+}
+
+void sort_ascend()
+{
+	sort_lines(1);
+}
+
+void sort_descend()
+{
+	sort_lines(-1);
 }
 
 void helloDlg()

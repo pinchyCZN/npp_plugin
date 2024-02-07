@@ -36,7 +36,7 @@ const TCHAR NPP_PLUGIN_NAME[] = TEXT("JSON formatter");
 //
 // Here define the number of your plugin commands
 //
-const int nbFunc = 2;
+const int nbFunc = 3;
 
 
 //
@@ -71,6 +71,8 @@ bool setCommand(size_t index, TCHAR *cmdName, PFUNCPLUGINCMD pFunc, ShortcutKey 
 // Your plugin command functions
 //
 void json_format();
+void sort_ascend();
+void sort_descend();
 void helloDlg();
 
 #endif //PLUGINDEFINITION_H
