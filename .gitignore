@@ -1,0 +1,12 @@
+*.sdf
+*.suo
+vs.proj/Debug
+vs.proj/Release
+vs.proj/NppPluginTemplate.opensdf
+vs.proj/NppPluginTemplate.exp
+vs.proj/NppPluginTemplate.lib
+vs.proj/NppPluginTemplate.vcxproj.user
+vs.proj/.vs/
+json_test/Debug
+json_test/Release
+
